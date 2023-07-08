@@ -1,0 +1,52 @@
+certificado_pem: certificado.pem
+certificado_key: certificado.key
+certificado_cer: certificado.cer
+
+cnpj: 12345678000190
+inscricao_municipal: 12345670018
+codigo_municipio: 3106200
+
+notas_fiscais:
+
+  - competencia: 2023-07-01T00:00:00
+    natureza_operacao: 1
+    regime_especial_tributacao: 6
+    optante_simples_nacional: 1
+    incentivador_cultural: 2
+    item_lista_servico: 1.05
+    codigo_tributacao_municipio: 10500188
+    discriminacao: Descrição dos serviços prestados.||Mais detalhes.
+    valor_servicos: 500.00
+    aliquota_iss: 0.0217
+    cnpj: 98765432000110
+    inscricao_municipal: 76543210019
+    razao_social: RAZÃO SOCIAL DO TOMADOR
+    logradouro: RUA DO TOMADOR
+    numero: 123
+    complemento: SALA 456
+    bairro: BAIRRO DO TOMADOR
+    codigo_municipio: 3106200
+    uf: MG
+    cep: 30000000
+
+  - competencia: 2023-07-01T00:00:00
+    natureza_operacao: 1
+    regime_especial_tributacao: 6
+    optante_simples_nacional: 1
+    incentivador_cultural: 2
+    item_lista_servico: 1.05
+    codigo_tributacao_municipio: 10500188
+    discriminacao: Descrição dos serviços prestados.||Mais detalhes.
+    valor_servicos: 750.00
+    aliquota_iss: 0.0217
+    cnpj: 98765432000110
+    inscricao_municipal: 76543210019
+    razao_social: RAZÃO SOCIAL DO TOMADOR
+    logradouro: RUA DO TOMADOR
+    numero: 123
+    complemento: SALA 456
+    bairro: BAIRRO DO TOMADOR
+    codigo_municipio: 3106200
+    uf: MG
+    cep: 30000000
+
