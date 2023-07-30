@@ -15,3 +15,6 @@ serde = { version = "1.0.164", features = ["derive"] }
 serde_yaml = "0.9.23"
 sha1 = "0.10.5"
 xml = "0.8.10"
+
+[dev-dependencies]
+httptest = "0.15.4"

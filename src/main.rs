@@ -1,6 +1,8 @@
 use nfse_bh_rust::algorithms::CanonicalizationAlgorithm;
 use nfse_bh_rust::algorithms::DigestAlgorithm;
 use nfse_bh_rust::algorithms::SignatureAlgorithm;
+use nfse_bh_rust::curl::Request;
+use nfse_bh_rust::curl::RequestMethod;
 use nfse_bh_rust::lote_rps::LoteRps;
 use nfse_bh_rust::signature::XmlSignature;
 use nfse_bh_rust::utils::recepcionar_lote_rps_request_wrapper;
@@ -8,6 +10,7 @@ use nfse_bh_rust::utils::trim_x509_certificate;
 use nfse_bh_rust::utils::xml_events_to_xml_string;
 
 fn main() -> Result<(), String> {
+    let stdin = std::io::stdin();
     let args = std::env::args().collect::<Vec<String>>();
 
     let default_yaml_file_name = String::from("input.yml");
@@ -23,6 +26,14 @@ fn main() -> Result<(), String> {
             _ => Err("bad yaml input"),
         },
         Err(_) => Err("bad yaml input"),
+    }?;
+
+    let production = match input_contents.get("producao") {
+        Some(it) => match it {
+            serde_yaml::Value::Bool(it) => Ok(it),
+            _ => Err("bad yaml input: producao"),
+        },
+        None => Err("bad yaml input: producao"),
     }?;
 
     let private_key = match input_contents.get("certificado_key") {
@@ -77,43 +88,59 @@ fn main() -> Result<(), String> {
         &lote_rps.enviar_lote_rps_envio_events(),
     ));
 
-    let mut handle = curl::easy::Easy::new();
-    let mut list = curl::easy::List::new();
-    handle
-        .url("https://bhisshomologa.pbh.gov.br/bhiss-ws/nfse")
-        .map_err(|e| format!("error in curl: {}", e))?;
-    handle
-        .ssl_cert(certificado_pem_file)
-        .map_err(|e| format!("error in curl: {}", e))?;
-    handle
-        .post(true)
-        .map_err(|e| format!("error in curl: {}", e))?;
-    handle
-        .post_field_size(request_data.len() as u64)
-        .map_err(|e| format!("error in curl: {}", e))?;
-    list.append("Accept: application/xml")
-        .map_err(|e| format!("error in curl: {}", e))?;
-    list.append("Content-Type: text/xml")
-        .map_err(|e| format!("error in curl: {}", e))?;
-    list.append("SOAPAction: http://ws.bhiss.pbh.gov.br/RecepcionarLoteRps")
-        .map_err(|e| format!("error in curl: {}", e))?;
-    handle
-        .http_headers(list)
-        .map_err(|e| format!("error in curl: {}", e))?;
-    handle
-        .read_function(move |buf| {
-            Ok(std::io::Read::read(&mut request_data.as_bytes(), buf).unwrap_or(0))
+    print!(
+        "Digite SIM para confirmar a emissão de {} notas fiscais em ambiente de {}: ",
+        lote_rps.get_rpses().len(),
+        if *production { "PRODUÇÃO" } else { "teste" }
+    );
+    std::io::Write::flush(&mut std::io::stdout()).unwrap();
+    let mut confirm = String::new();
+    stdin.read_line(&mut confirm).unwrap();
+    if &confirm != "SIM\n" {
+        return Err(String::from("confirmation failed"));
+    }
+
+    let req = Request::new()
+        .set_certificate_path(Some(certificado_pem_file.to_string()))
+        .set_url(if *production {
+            String::from("https://bhissdigital.pbh.gov.br/bhiss-ws/nfse")
+        } else {
+            String::from("https://bhisshomologa.pbh.gov.br/bhiss-ws/nfse")
         })
-        .map_err(|e| format!("error in curl: {}", e))?;
-    handle
-        .write_function(|data| {
-            std::io::Write::write_all(&mut std::io::stdout(), data).unwrap();
-            Ok(data.len())
-        })
-        .map_err(|e| format!("error in curl: {}", e))?;
-    handle
-        .perform()
-        .map_err(|e| format!("error in curl: {}", e))?;
+        .set_header(String::from("foo"), Some(String::from("bar")))
+        .set_header(
+            String::from("Accept"),
+            Some(String::from("application/xml")),
+        )
+        .set_header(String::from("Content-Type"), Some(String::from("text/xml")))
+        .set_header(
+            String::from("SOAPAction"),
+            Some(String::from(
+                "http://ws.bhiss.pbh.gov.br/RecepcionarLoteRps",
+            )),
+        )
+        .set_method(RequestMethod::POST(request_data));
+
+    let (status_code, data) = req.run().unwrap();
+
+    let data = String::from_utf8(data).unwrap();
+
+    if status_code != 200 {
+        return Err(format!(
+            "error in request (status {}), {}",
+            status_code, data
+        ));
+    }
+
+    let protocolo = data
+        .split_once("Protocolo&gt;")
+        .unwrap()
+        .1
+        .split_once("&lt;/Protocolo")
+        .unwrap()
+        .0;
+
+    println!("Enviado com sucesso! Protocolo: {}", protocolo);
 
     Ok(())
 }
