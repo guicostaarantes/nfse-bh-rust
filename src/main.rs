@@ -103,9 +103,9 @@ fn main() -> Result<(), String> {
     let req = Request::new()
         .set_certificate_path(Some(certificado_pem_file.to_string()))
         .set_url(if *production {
-            String::from("https://bhissdigital.pbh.gov.br/bhiss-ws/nfse")
+            String::from("https://bhissdigitalws.pbh.gov.br/bhiss-ws/nfse")
         } else {
-            String::from("https://bhisshomologa.pbh.gov.br/bhiss-ws/nfse")
+            String::from("https://bhisshomologaws.pbh.gov.br/bhiss-ws/nfse")
         })
         .set_header(String::from("foo"), Some(String::from("bar")))
         .set_header(
