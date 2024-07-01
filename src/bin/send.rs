@@ -96,7 +96,9 @@ fn main() -> Result<(), String> {
     std::io::Write::flush(&mut std::io::stdout()).unwrap();
     let mut confirm = String::new();
     stdin.read_line(&mut confirm).unwrap();
-    if &confirm != "SIM\n" {
+    confirm.pop(); // remove \n
+
+    if &confirm != "SIM" {
         return Err(String::from("confirmation failed"));
     }
 
@@ -107,7 +109,6 @@ fn main() -> Result<(), String> {
         } else {
             String::from("https://bhisshomologaws.pbh.gov.br/bhiss-ws/nfse")
         })
-        .set_header(String::from("foo"), Some(String::from("bar")))
         .set_header(
             String::from("Accept"),
             Some(String::from("application/xml")),
