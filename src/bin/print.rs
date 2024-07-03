@@ -81,8 +81,39 @@ fn main() -> Result<(), String> {
 
     let data = String::from_utf8(data).unwrap();
 
-    println!("Code: {}\n", status_code);
-    println!("{}", data);
+    if status_code != 200 {
+        return Err(format!(
+            "error in request (status {}), {}",
+            status_code, data
+        ));
+    }
+
+    let data = data
+        .split_once("<outputXML>")
+        .unwrap()
+        .1
+        .split_once("</outputXML>")
+        .unwrap()
+        .0;
+
+    let data = data
+        .replace("&quot;", "\"")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">");
+
+    let nfses = data
+        .strip_prefix("<?xml version='1.0' encoding='UTF-8'?><ConsultarLoteRpsResposta xmlns=\"http://www.abrasf.org.br/nfse.xsd\"><ListaNfse>")
+        .unwrap()
+        .strip_suffix("</ListaNfse></ConsultarLoteRpsResposta>")
+        .unwrap()
+        .split("<CompNfse")
+        .map(|nf| format!("<?xml version='1.0' encoding='UTF-8'?><CompNfse{nf}"))
+        .collect::<Vec<String>>();
+
+    nfses.iter().for_each(|nf| {
+        println!("{}", nf);
+        println!("");
+    });
 
     Ok(())
 }
