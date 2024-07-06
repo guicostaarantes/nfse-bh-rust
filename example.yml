@@ -8,7 +8,8 @@ codigo_municipio: 3106200
 
 notas_fiscais:
 
-  - competencia: 2023-07-01T00:00:00
+  - nome_arquivo: nota_fiscal_1
+    competencia: 2023-07-01T00:00:00
     natureza_operacao: 1
     regime_especial_tributacao: 6
     optante_simples_nacional: 1
@@ -29,7 +30,8 @@ notas_fiscais:
     uf: MG
     cep: 30000000
 
-  - competencia: 2023-07-01T00:00:00
+  - nome_arquivo: nota_fiscal_2
+    competencia: 2023-07-01T00:00:00
     natureza_operacao: 1
     regime_especial_tributacao: 6
     optante_simples_nacional: 1

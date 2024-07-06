@@ -8,6 +8,7 @@ use crate::utils;
 
 pub struct Rps {
     id: String,
+    pub nome_arquivo: String,
     data_emissao: String,
     natureza_operacao: String,
     regime_especial_tributacao: String,
@@ -39,6 +40,7 @@ pub struct Rps {
 impl Rps {
     pub fn new(
         id: String,
+        nome_arquivo: String,
         data_emissao: String,
         natureza_operacao: String,
         regime_especial_tributacao: String,
@@ -85,6 +87,7 @@ impl Rps {
 
         Self {
             id,
+            nome_arquivo,
             data_emissao,
             natureza_operacao,
             regime_especial_tributacao,
@@ -134,6 +137,14 @@ impl Rps {
                 _ => Err("bad yaml input: id"),
             },
             None => Ok(utils::generate_random_rps()),
+        }?;
+
+        let nome_arquivo = match yaml.get("nome_arquivo") {
+            Some(it) => match it {
+                serde_yaml::Value::String(it) => Ok(it.clone()),
+                _ => Err("bad yaml input: nome_arquivo"),
+            },
+            None => Err("bad yaml input: nome_arquivo"),
         }?;
 
         let data_emissao = match yaml.get("competencia") {
@@ -322,6 +333,7 @@ impl Rps {
 
         Ok(Self::new(
             id,
+            nome_arquivo,
             data_emissao,
             natureza_operacao,
             regime_especial_tributacao,
@@ -760,6 +772,18 @@ impl Rps {
         events
     }
 }
+
+impl Rps {
+    pub fn uniquely_identify(&self) -> String {
+        format!(
+            "{}|{}|{}",
+            self.razao_social_tomador.clone(),
+            self.discriminacao.clone(),
+            self.valor_servicos.clone()
+        )
+    }
+}
+
 
 #[cfg(test)]
 mod tests {

@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 base64ct = { version = "1.6.0", features = ["alloc"] }
+chrono = "0.4.38"
 curl = "0.4.44"
 quick-xml = { version = "0.29.0", features = ["serialize"] }
 rand = "0.8.5"

@@ -1,5 +1,7 @@
 use nfse_bh_rust::curl::Request;
 use nfse_bh_rust::curl::RequestMethod;
+use nfse_bh_rust::lote_rps::LoteRps;
+use nfse_bh_rust::nfse::Nfse;
 use nfse_bh_rust::protocolo::Protocolo;
 use nfse_bh_rust::utils::xml_events_to_xml_string;
 
@@ -21,6 +23,12 @@ fn main() -> Result<(), String> {
         },
         Err(_) => Err("bad yaml input"),
     }?;
+
+    let lote_rps = LoteRps::from_yaml(input_contents)
+        .unwrap()
+        .get_rpses()
+        .map(|rps| (rps.uniquely_identify(), rps.nome_arquivo.clone()))
+        .collect::<Vec<_>>();
 
     let production = match input_contents.get("producao") {
         Some(it) => match it {
@@ -90,10 +98,10 @@ fn main() -> Result<(), String> {
 
     let data = data
         .split_once("<outputXML>")
-        .unwrap()
+        .ok_or(String::from("expected outputXML tag"))?
         .1
         .split_once("</outputXML>")
-        .unwrap()
+        .ok_or(String::from("expected outputXML tag"))?
         .0;
 
     let data = data
@@ -103,16 +111,76 @@ fn main() -> Result<(), String> {
 
     let nfses = data
         .strip_prefix("<?xml version='1.0' encoding='UTF-8'?><ConsultarLoteRpsResposta xmlns=\"http://www.abrasf.org.br/nfse.xsd\"><ListaNfse>")
-        .unwrap()
+        .ok_or(String::from("bad xml prefix"))?
         .strip_suffix("</ListaNfse></ConsultarLoteRpsResposta>")
-        .unwrap()
+        .ok_or(String::from("bad xml suffix"))?
         .split("<CompNfse")
-        .map(|nf| format!("<?xml version='1.0' encoding='UTF-8'?><CompNfse{nf}"))
-        .collect::<Vec<String>>();
+        .skip(1)
+        .map(|nf| {
+            let xml = format!("<?xml version='1.0' encoding='UTF-8'?><CompNfse{nf}");
+            let nfse = Nfse::from_xml_string(&xml).unwrap();
+            let ui = nfse.uniquely_identify();
+            (ui, xml)
+        })
+        .collect::<Vec<(String, String)>>();
 
-    nfses.iter().for_each(|nf| {
-        println!("{}", nf);
-        println!("");
+    let dir_name = format!("output-{}", chrono::Utc::now().format("%Y-%m-%d-%H-%M"));
+
+    std::fs::create_dir(&dir_name).unwrap();
+
+    nfses.iter().for_each(|(ui, xml)| {
+        let nome_arquivo = lote_rps.iter().find(|rps| *ui == rps.0).unwrap().1.clone();
+        let mut xml_file =
+            std::fs::File::create_new(&format!("{dir_name}/{nome_arquivo}_NFS.xml")).unwrap();
+        std::io::Write::write_all(&mut xml_file, xml.as_bytes()).unwrap();
+
+        let chave_acesso: Result<String, String> = 'a: {
+            let chave = match xml
+                .split_once("<OutrasInformacoes>Chave de acesso no Ambiente de Dados Nacional: ")
+            {
+                Some(s) => s.1,
+                None => {
+                    break 'a Err(String::from("can not find chave_acesso"));
+                }
+            };
+
+            let chave = match chave.split_once(".</OutrasInformacoes>") {
+                Some(s) => s.0,
+                None => {
+                    break 'a Err(String::from("can not find chave_acesso"));
+                }
+            };
+
+            if chave.len() != 50 {
+                panic!("bad size for chave_acesso");
+            }
+
+            Ok(chave.to_string())
+        };
+
+        match chave_acesso {
+            Ok(chave) => {
+                let req = Request::new()
+                    .set_certificate_path(Some(certificado_pem_file.to_string()))
+                    .set_url(format!(
+                        "https://sefin.nfse.gov.br/sefinnacional/danfse/{chave}"
+                    ))
+                    .set_method(RequestMethod::GET);
+
+                let (status_code, data) = req.run().unwrap();
+
+                if status_code != 200 {
+                    panic!("error in request to sefinnacional");
+                }
+
+                let mut pdf_file =
+                    std::fs::File::create_new(&format!("{dir_name}/{nome_arquivo}_NFS.pdf")).unwrap();
+                std::io::Write::write_all(&mut pdf_file, &data).unwrap();
+            }
+            Err(e) => {
+                println!("skipping pdf for {nome_arquivo}: {e}");
+            }
+        }
     });
 
     Ok(())

@@ -42,7 +42,13 @@ pub struct Nfse {
 
 impl Nfse {
     pub fn from_xml_string(xml: &str) -> Result<Self, String> {
-        let mut reader = Reader::from_str(&xml);
+        let inf_nfse = xml
+            .strip_prefix("<?xml version='1.0' encoding='UTF-8'?><CompNfse xmlns=\"http://www.abrasf.org.br/nfse.xsd\"><Nfse xmlns=\"http://www.abrasf.org.br/nfse.xsd\" versao=\"1.00\">")
+            .ok_or(String::from("bad xml prefix"))?
+            .strip_suffix("</Nfse></CompNfse>")
+            .ok_or(String::from("bad xml suffix"))?;
+
+        let mut reader = Reader::from_str(&inf_nfse);
 
         let mut names = Vec::new();
 
@@ -344,12 +350,7 @@ impl Nfse {
                                     return Err(String::from("bad xml"));
                                 }
                             },
-                            e => {
-                                return Err(format!(
-                                    "unexpected xml {}",
-                                    String::from_utf8(e.to_vec()).unwrap()
-                                ));
-                            }
+                            _ => {}
                         },
                         None => {
                             return Err(String::from("bad xml"));
@@ -446,13 +447,24 @@ impl Nfse {
     }
 }
 
+impl Nfse {
+    pub fn uniquely_identify(&self) -> String {
+        format!(
+            "{}|{}|{}",
+            self.razao_social_tomador.clone(),
+            self.discriminacao.clone(),
+            self.valor_servicos.clone()
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::nfse::Nfse;
 
     #[test]
     fn should_create_nfse_from_xml() {
-        let example = r#"<InfNfse Id="nfse"><Numero>12345</Numero><CodigoVerificacao>67890</CodigoVerificacao><DataEmissao>2020-01-01T01:02:03</DataEmissao><NaturezaOperacao>3</NaturezaOperacao><RegimeEspecialTributacao>6</RegimeEspecialTributacao><OptanteSimplesNacional>1</OptanteSimplesNacional><IncentivadorCultural>2</IncentivadorCultural><Competencia>2020-01-01T00:00:00</Competencia><OutrasInformacoes>NFS-e gerada em ambiente de teste. NÃO TEM VALOR JURÍDICO NEM FISCAL.</OutrasInformacoes><Servico><Valores><ValorServicos>95.31</ValorServicos><IssRetido>2</IssRetido><ValorIss>0.00</ValorIss><BaseCalculo>95.31</BaseCalculo><Aliquota>0.0217</Aliquota><ValorLiquidoNfse>95.31</ValorLiquidoNfse></Valores><ItemListaServico>1.04</ItemListaServico><CodigoTributacaoMunicipio>10400188</CodigoTributacaoMunicipio><Discriminacao>Consultoria em desenvolvimento de software</Discriminacao><CodigoMunicipio>3106200</CodigoMunicipio></Servico><PrestadorServico><IdentificacaoPrestador><Cnpj>12345678000190</Cnpj><InscricaoMunicipal>12345670018</InscricaoMunicipal></IdentificacaoPrestador><RazaoSocial>NOME DA EMPRESA</RazaoSocial><NomeFantasia>NOME FANTASIA</NomeFantasia><Endereco><Endereco>RUA DO PRESTADOR</Endereco><Numero>12</Numero><Complemento>SALA 01</Complemento><Bairro>Bairro Um</Bairro><CodigoMunicipio>3106200</CodigoMunicipio><Uf>MG</Uf><Cep>34567890</Cep></Endereco></PrestadorServico><TomadorServico><IdentificacaoTomador><CpfCnpj><Cnpj>12345678000290</Cnpj></CpfCnpj><InscricaoMunicipal>12345670019</InscricaoMunicipal></IdentificacaoTomador><RazaoSocial>NOME DO TOMADOR</RazaoSocial><Endereco><Endereco>RUA DO TOMADOR</Endereco><Numero>34</Numero><Complemento>SALA 02</Complemento><Bairro>Bairro Dois</Bairro><CodigoMunicipio>3106200</CodigoMunicipio><Uf>MG</Uf><Cep>34567891</Cep></Endereco></TomadorServico><OrgaoGerador><CodigoMunicipio>3106200</CodigoMunicipio><Uf>MG</Uf></OrgaoGerador></InfNfse>"#;
+        let example = r##"<?xml version='1.0' encoding='UTF-8'?><CompNfse xmlns="http://www.abrasf.org.br/nfse.xsd"><Nfse xmlns="http://www.abrasf.org.br/nfse.xsd" versao="1.00"><InfNfse Id="nfse"><Numero>12345</Numero><CodigoVerificacao>67890</CodigoVerificacao><DataEmissao>2020-01-01T01:02:03</DataEmissao><NaturezaOperacao>3</NaturezaOperacao><RegimeEspecialTributacao>6</RegimeEspecialTributacao><OptanteSimplesNacional>1</OptanteSimplesNacional><IncentivadorCultural>2</IncentivadorCultural><Competencia>2020-01-01T00:00:00</Competencia><OutrasInformacoes>NFS-e gerada em ambiente de teste. NÃO TEM VALOR JURÍDICO NEM FISCAL.</OutrasInformacoes><Servico><Valores><ValorServicos>95.31</ValorServicos><IssRetido>2</IssRetido><ValorIss>0.00</ValorIss><BaseCalculo>95.31</BaseCalculo><Aliquota>0.0217</Aliquota><ValorLiquidoNfse>95.31</ValorLiquidoNfse></Valores><ItemListaServico>1.04</ItemListaServico><CodigoTributacaoMunicipio>10400188</CodigoTributacaoMunicipio><Discriminacao>Consultoria em desenvolvimento de software</Discriminacao><CodigoMunicipio>3106200</CodigoMunicipio></Servico><PrestadorServico><IdentificacaoPrestador><Cnpj>12345678000190</Cnpj><InscricaoMunicipal>12345670018</InscricaoMunicipal></IdentificacaoPrestador><RazaoSocial>NOME DA EMPRESA</RazaoSocial><NomeFantasia>NOME FANTASIA</NomeFantasia><Endereco><Endereco>RUA DO PRESTADOR</Endereco><Numero>12</Numero><Complemento>SALA 01</Complemento><Bairro>Bairro Um</Bairro><CodigoMunicipio>3106200</CodigoMunicipio><Uf>MG</Uf><Cep>34567890</Cep></Endereco></PrestadorServico><TomadorServico><IdentificacaoTomador><CpfCnpj><Cnpj>12345678000290</Cnpj></CpfCnpj><InscricaoMunicipal>12345670019</InscricaoMunicipal></IdentificacaoTomador><RazaoSocial>NOME DO TOMADOR</RazaoSocial><Endereco><Endereco>RUA DO TOMADOR</Endereco><Numero>34</Numero><Complemento>SALA 02</Complemento><Bairro>Bairro Dois</Bairro><CodigoMunicipio>3106200</CodigoMunicipio><Uf>MG</Uf><Cep>34567891</Cep></Endereco></TomadorServico><OrgaoGerador><CodigoMunicipio>3106200</CodigoMunicipio><Uf>MG</Uf></OrgaoGerador></InfNfse><Signature xmlns="http://www.w3.org/2000/09/xmldsig#" Id="NfseAssSMF_nfse"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"></CanonicalizationMethod><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"></SignatureMethod><Reference URI="#nfse"><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"></Transform><Transform Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"></Transform></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"></DigestMethod><DigestValue>qGWuH7wEjIyKppcEjuaCMqPGl2I=</DigestValue></Reference></SignedInfo><SignatureValue>Assinatura</SignatureValue><KeyInfo><X509Data><X509Certificate>Certificado</X509Certificate></X509Data></KeyInfo></Signature></Nfse></CompNfse>"##;
         let nfse = Nfse::from_xml_string(example).unwrap();
         assert_eq!(
             nfse,
