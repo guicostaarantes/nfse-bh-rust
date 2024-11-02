@@ -124,7 +124,7 @@ fn main() -> Result<(), String> {
         })
         .collect::<Vec<(String, String)>>();
 
-    let dir_name = format!("output-{}", chrono::Utc::now().format("%Y-%m-%d-%H-%M"));
+    let dir_name = format!("output-{}-{}", protocolo.protocolo, chrono::Utc::now().format("%Y-%m-%d-%H-%M"));
 
     std::fs::create_dir(&dir_name).unwrap();
 
@@ -169,13 +169,13 @@ fn main() -> Result<(), String> {
 
                 let (status_code, data) = req.run().unwrap();
 
-                if status_code != 200 {
-                    panic!("error in request to sefinnacional");
+                if status_code == 200 {
+                    let mut pdf_file =
+                        std::fs::File::create_new(&format!("{dir_name}/{nome_arquivo}_NFS.pdf")).unwrap();
+                    std::io::Write::write_all(&mut pdf_file, &data).unwrap();
+                } else {
+                    println!("skipping pdf for {nome_arquivo}: {status_code}");
                 }
-
-                let mut pdf_file =
-                    std::fs::File::create_new(&format!("{dir_name}/{nome_arquivo}_NFS.pdf")).unwrap();
-                std::io::Write::write_all(&mut pdf_file, &data).unwrap();
             }
             Err(e) => {
                 println!("skipping pdf for {nome_arquivo}: {e}");

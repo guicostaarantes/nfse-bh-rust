@@ -4,7 +4,7 @@ use quick_xml::events::BytesText;
 use quick_xml::events::Event;
 
 pub struct Protocolo {
-    protocolo: String,
+    pub protocolo: String,
     cnpj: String,
     inscricao_municipal: String,
 }

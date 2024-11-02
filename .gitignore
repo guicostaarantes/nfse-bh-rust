@@ -3,4 +3,5 @@
 *.key
 *.cer
 *.pem
+output*
 input.yml
