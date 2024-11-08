@@ -217,6 +217,7 @@ inscricao_municipal: inscricao_municipal_prestador
 codigo_municipio: codigo_municipio_prestador
 notas_fiscais:
   - id: 1234
+    nome_arquivo: ACME_1234
     competencia: data_emissao
     natureza_operacao: natureza_operacao
     regime_especial_tributacao: regime_especial_tributacao
@@ -238,6 +239,7 @@ notas_fiscais:
     uf: uf_tomador
     cep: cep_tomador
   - id: 5678
+    nome_arquivo: ACME_5678
     competencia: data_emissao_2
     natureza_operacao: natureza_operacao_2
     regime_especial_tributacao: regime_especial_tributacao_2

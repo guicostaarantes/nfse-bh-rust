@@ -804,6 +804,7 @@ mod tests {
         let yaml = serde_yaml::from_str(
             "
 id: 1234
+nome_arquivo: ACME_1234
 competencia: data_emissao
 natureza_operacao: natureza_operacao
 regime_especial_tributacao: regime_especial_tributacao
