@@ -13,8 +13,8 @@ pub struct Nfse {
     incentivador_cultural: String,
     outras_informacoes: String,
     valor_servicos: String,
-    aliquota_iss: String,
-    valor_iss: String,
+    aliquota_iss: Option<String>,
+    valor_iss: Option<String>,
     codigo_tributacao_municipio: String,
     discriminacao: String,
     codigo_municipio: String,
@@ -380,8 +380,6 @@ impl Nfse {
         let outras_informacoes =
             outras_informacoes.ok_or(String::from("missing outras_informacoes"))?;
         let valor_servicos = valor_servicos.ok_or(String::from("missing valor_servicos"))?;
-        let aliquota_iss = aliquota_iss.ok_or(String::from("missing aliquota_iss"))?;
-        let valor_iss = valor_iss.ok_or(String::from("missing valor_iss"))?;
         let codigo_tributacao_municipio = codigo_tributacao_municipio
             .ok_or(String::from("missing codigo_tributacao_municipio"))?;
         let discriminacao = discriminacao.ok_or(String::from("missing discriminacao"))?;
@@ -464,7 +462,7 @@ mod tests {
 
     #[test]
     fn should_create_nfse_from_xml() {
-        let example = r##"<?xml version='1.0' encoding='UTF-8'?><CompNfse xmlns="http://www.abrasf.org.br/nfse.xsd"><Nfse xmlns="http://www.abrasf.org.br/nfse.xsd" versao="1.00"><InfNfse Id="nfse"><Numero>12345</Numero><CodigoVerificacao>67890</CodigoVerificacao><DataEmissao>2020-01-01T01:02:03</DataEmissao><NaturezaOperacao>3</NaturezaOperacao><RegimeEspecialTributacao>6</RegimeEspecialTributacao><OptanteSimplesNacional>1</OptanteSimplesNacional><IncentivadorCultural>2</IncentivadorCultural><Competencia>2020-01-01T00:00:00</Competencia><OutrasInformacoes>NFS-e gerada em ambiente de teste. NÃO TEM VALOR JURÍDICO NEM FISCAL.</OutrasInformacoes><Servico><Valores><ValorServicos>95.31</ValorServicos><IssRetido>2</IssRetido><ValorIss>0.00</ValorIss><BaseCalculo>95.31</BaseCalculo><Aliquota>0.0217</Aliquota><ValorLiquidoNfse>95.31</ValorLiquidoNfse></Valores><ItemListaServico>1.04</ItemListaServico><CodigoTributacaoMunicipio>10400188</CodigoTributacaoMunicipio><Discriminacao>Consultoria em desenvolvimento de software</Discriminacao><CodigoMunicipio>3106200</CodigoMunicipio></Servico><PrestadorServico><IdentificacaoPrestador><Cnpj>12345678000190</Cnpj><InscricaoMunicipal>12345670018</InscricaoMunicipal></IdentificacaoPrestador><RazaoSocial>NOME DA EMPRESA</RazaoSocial><NomeFantasia>NOME FANTASIA</NomeFantasia><Endereco><Endereco>RUA DO PRESTADOR</Endereco><Numero>12</Numero><Complemento>SALA 01</Complemento><Bairro>Bairro Um</Bairro><CodigoMunicipio>3106200</CodigoMunicipio><Uf>MG</Uf><Cep>34567890</Cep></Endereco></PrestadorServico><TomadorServico><IdentificacaoTomador><CpfCnpj><Cnpj>12345678000290</Cnpj></CpfCnpj><InscricaoMunicipal>12345670019</InscricaoMunicipal></IdentificacaoTomador><RazaoSocial>NOME DO TOMADOR</RazaoSocial><Endereco><Endereco>RUA DO TOMADOR</Endereco><Numero>34</Numero><Complemento>SALA 02</Complemento><Bairro>Bairro Dois</Bairro><CodigoMunicipio>3106200</CodigoMunicipio><Uf>MG</Uf><Cep>34567891</Cep></Endereco></TomadorServico><OrgaoGerador><CodigoMunicipio>3106200</CodigoMunicipio><Uf>MG</Uf></OrgaoGerador></InfNfse><Signature xmlns="http://www.w3.org/2000/09/xmldsig#" Id="NfseAssSMF_nfse"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"></CanonicalizationMethod><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"></SignatureMethod><Reference URI="#nfse"><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"></Transform><Transform Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"></Transform></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"></DigestMethod><DigestValue>qGWuH7wEjIyKppcEjuaCMqPGl2I=</DigestValue></Reference></SignedInfo><SignatureValue>Assinatura</SignatureValue><KeyInfo><X509Data><X509Certificate>Certificado</X509Certificate></X509Data></KeyInfo></Signature></Nfse></CompNfse>"##;
+        let example = r##"<?xml version='1.0' encoding='UTF-8'?><CompNfse xmlns="http://www.abrasf.org.br/nfse.xsd"><Nfse xmlns="http://www.abrasf.org.br/nfse.xsd" versao="1.00"><InfNfse Id="nfse"><Numero>12345</Numero><CodigoVerificacao>67890</CodigoVerificacao><DataEmissao>2020-01-01T01:02:03</DataEmissao><NaturezaOperacao>3</NaturezaOperacao><RegimeEspecialTributacao>6</RegimeEspecialTributacao><OptanteSimplesNacional>1</OptanteSimplesNacional><IncentivadorCultural>2</IncentivadorCultural><Competencia>2020-01-01T00:00:00</Competencia><OutrasInformacoes>NFS-e gerada em ambiente de teste. NÃO TEM VALOR JURÍDICO NEM FISCAL.</OutrasInformacoes><Servico><Valores><ValorServicos>95.31</ValorServicos><IssRetido>1</IssRetido><ValorIss>2.07</ValorIss><BaseCalculo>95.31</BaseCalculo><Aliquota>0.0217</Aliquota><ValorLiquidoNfse>95.31</ValorLiquidoNfse></Valores><ItemListaServico>1.04</ItemListaServico><CodigoTributacaoMunicipio>10400188</CodigoTributacaoMunicipio><Discriminacao>Consultoria em desenvolvimento de software</Discriminacao><CodigoMunicipio>3106200</CodigoMunicipio></Servico><PrestadorServico><IdentificacaoPrestador><Cnpj>12345678000190</Cnpj><InscricaoMunicipal>12345670018</InscricaoMunicipal></IdentificacaoPrestador><RazaoSocial>NOME DA EMPRESA</RazaoSocial><NomeFantasia>NOME FANTASIA</NomeFantasia><Endereco><Endereco>RUA DO PRESTADOR</Endereco><Numero>12</Numero><Complemento>SALA 01</Complemento><Bairro>Bairro Um</Bairro><CodigoMunicipio>3106200</CodigoMunicipio><Uf>MG</Uf><Cep>34567890</Cep></Endereco></PrestadorServico><TomadorServico><IdentificacaoTomador><CpfCnpj><Cnpj>12345678000290</Cnpj></CpfCnpj><InscricaoMunicipal>12345670019</InscricaoMunicipal></IdentificacaoTomador><RazaoSocial>NOME DO TOMADOR</RazaoSocial><Endereco><Endereco>RUA DO TOMADOR</Endereco><Numero>34</Numero><Complemento>SALA 02</Complemento><Bairro>Bairro Dois</Bairro><CodigoMunicipio>3106200</CodigoMunicipio><Uf>MG</Uf><Cep>34567891</Cep></Endereco></TomadorServico><OrgaoGerador><CodigoMunicipio>3106200</CodigoMunicipio><Uf>MG</Uf></OrgaoGerador></InfNfse><Signature xmlns="http://www.w3.org/2000/09/xmldsig#" Id="NfseAssSMF_nfse"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"></CanonicalizationMethod><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"></SignatureMethod><Reference URI="#nfse"><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"></Transform><Transform Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"></Transform></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"></DigestMethod><DigestValue>qGWuH7wEjIyKppcEjuaCMqPGl2I=</DigestValue></Reference></SignedInfo><SignatureValue>Assinatura</SignatureValue><KeyInfo><X509Data><X509Certificate>Certificado</X509Certificate></X509Data></KeyInfo></Signature></Nfse></CompNfse>"##;
         let nfse = Nfse::from_xml_string(example).unwrap();
         assert_eq!(
             nfse,
@@ -481,8 +479,56 @@ mod tests {
                     "NFS-e gerada em ambiente de teste. NÃO TEM VALOR JURÍDICO NEM FISCAL."
                 ),
                 valor_servicos: String::from("95.31"),
-                aliquota_iss: String::from("0.0217"),
-                valor_iss: String::from("0.00"),
+                aliquota_iss: Some(String::from("0.0217")),
+                valor_iss: Some(String::from("2.07")),
+                codigo_tributacao_municipio: String::from("10400188"),
+                discriminacao: String::from("Consultoria em desenvolvimento de software"),
+                codigo_municipio: String::from("3106200"),
+                cnpj_prestador: String::from("12345678000190"),
+                inscricao_municipal_prestador: Some(String::from("12345670018")),
+                razao_social_prestador: String::from("NOME DA EMPRESA"),
+                logradouro_prestador: String::from("RUA DO PRESTADOR"),
+                numero_prestador: String::from("12"),
+                complemento_prestador: Some(String::from("SALA 01")),
+                bairro_prestador: String::from("Bairro Um"),
+                codigo_municipio_prestador: String::from("3106200"),
+                uf_prestador: String::from("MG"),
+                cep_prestador: String::from("34567890"),
+                cnpj_tomador: Some(String::from("12345678000290")),
+                inscricao_municipal_tomador: Some(String::from("12345670019")),
+                razao_social_tomador: String::from("NOME DO TOMADOR"),
+                logradouro_tomador: String::from("RUA DO TOMADOR"),
+                numero_tomador: String::from("34"),
+                complemento_tomador: Some(String::from("SALA 02")),
+                bairro_tomador: String::from("Bairro Dois"),
+                codigo_municipio_tomador: String::from("3106200"),
+                uf_tomador: String::from("MG"),
+                cep_tomador: Some(String::from("34567891")),
+            }
+        );
+    }
+
+    #[test]
+    fn should_create_nfse_from_xml_without_iss() {
+        let example = r##"<?xml version='1.0' encoding='UTF-8'?><CompNfse xmlns="http://www.abrasf.org.br/nfse.xsd"><Nfse xmlns="http://www.abrasf.org.br/nfse.xsd" versao="1.00"><InfNfse Id="nfse"><Numero>12345</Numero><CodigoVerificacao>67890</CodigoVerificacao><DataEmissao>2020-01-01T01:02:03</DataEmissao><NaturezaOperacao>3</NaturezaOperacao><RegimeEspecialTributacao>6</RegimeEspecialTributacao><OptanteSimplesNacional>1</OptanteSimplesNacional><IncentivadorCultural>2</IncentivadorCultural><Competencia>2020-01-01T00:00:00</Competencia><OutrasInformacoes>NFS-e gerada em ambiente de teste. NÃO TEM VALOR JURÍDICO NEM FISCAL.</OutrasInformacoes><Servico><Valores><ValorServicos>95.31</ValorServicos><IssRetido>2</IssRetido><BaseCalculo>95.31</BaseCalculo><ValorLiquidoNfse>95.31</ValorLiquidoNfse></Valores><ItemListaServico>1.04</ItemListaServico><CodigoTributacaoMunicipio>10400188</CodigoTributacaoMunicipio><Discriminacao>Consultoria em desenvolvimento de software</Discriminacao><CodigoMunicipio>3106200</CodigoMunicipio></Servico><PrestadorServico><IdentificacaoPrestador><Cnpj>12345678000190</Cnpj><InscricaoMunicipal>12345670018</InscricaoMunicipal></IdentificacaoPrestador><RazaoSocial>NOME DA EMPRESA</RazaoSocial><NomeFantasia>NOME FANTASIA</NomeFantasia><Endereco><Endereco>RUA DO PRESTADOR</Endereco><Numero>12</Numero><Complemento>SALA 01</Complemento><Bairro>Bairro Um</Bairro><CodigoMunicipio>3106200</CodigoMunicipio><Uf>MG</Uf><Cep>34567890</Cep></Endereco></PrestadorServico><TomadorServico><IdentificacaoTomador><CpfCnpj><Cnpj>12345678000290</Cnpj></CpfCnpj><InscricaoMunicipal>12345670019</InscricaoMunicipal></IdentificacaoTomador><RazaoSocial>NOME DO TOMADOR</RazaoSocial><Endereco><Endereco>RUA DO TOMADOR</Endereco><Numero>34</Numero><Complemento>SALA 02</Complemento><Bairro>Bairro Dois</Bairro><CodigoMunicipio>3106200</CodigoMunicipio><Uf>MG</Uf><Cep>34567891</Cep></Endereco></TomadorServico><OrgaoGerador><CodigoMunicipio>3106200</CodigoMunicipio><Uf>MG</Uf></OrgaoGerador></InfNfse><Signature xmlns="http://www.w3.org/2000/09/xmldsig#" Id="NfseAssSMF_nfse"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"></CanonicalizationMethod><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"></SignatureMethod><Reference URI="#nfse"><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"></Transform><Transform Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"></Transform></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"></DigestMethod><DigestValue>qGWuH7wEjIyKppcEjuaCMqPGl2I=</DigestValue></Reference></SignedInfo><SignatureValue>Assinatura</SignatureValue><KeyInfo><X509Data><X509Certificate>Certificado</X509Certificate></X509Data></KeyInfo></Signature></Nfse></CompNfse>"##;
+        let nfse = Nfse::from_xml_string(example).unwrap();
+        assert_eq!(
+            nfse,
+            Nfse {
+                numero: String::from("12345"),
+                codigo_verificacao: String::from("67890"),
+                data_emissao: String::from("2020-01-01T01:02:03"),
+                competencia: String::from("2020-01-01T00:00:00"),
+                natureza_operacao: String::from("3"),
+                regime_especial_tributacao: String::from("6"),
+                optante_simples_nacional: String::from("1"),
+                incentivador_cultural: String::from("2"),
+                outras_informacoes: String::from(
+                    "NFS-e gerada em ambiente de teste. NÃO TEM VALOR JURÍDICO NEM FISCAL."
+                ),
+                valor_servicos: String::from("95.31"),
+                aliquota_iss: None,
+                valor_iss: None,
                 codigo_tributacao_municipio: String::from("10400188"),
                 discriminacao: String::from("Consultoria em desenvolvimento de software"),
                 codigo_municipio: String::from("3106200"),
